@@ -116,3 +116,9 @@ Desktop.ini
 
 # Linux
 *~
+
+# Mở .gitignore và thêm các dòng sau
+echo "mongo-data/" >> .gitignore
+echo "*.log" >> .gitignore
+echo "data/" >> .gitignore
+echo "node_modules/" >> .gitignore
