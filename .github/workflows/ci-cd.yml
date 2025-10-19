@@ -1,11 +1,11 @@
-name: CI/CD Pipeline
+name: CI/CD Pipeline with Docker
 
 on:
   push:
     branches: [ main ]
 
 jobs:
-  verify:
+  verify-and-build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -39,9 +39,22 @@ jobs:
           npm install
           echo "✅ API Gateway - Installation successful"
           
-          echo "🎉 All services verified successfully! CI/CD Pipeline completed."
+          echo "🎉 All services verified successfully!"
 
-      - name: Build Docker Images (Optional)
+      - name: Build Docker Images
         run: |
-          echo "🐳 Docker build would happen here in production"
-          echo "For now, CI/CD verification is complete"
+          echo "🐳 Building Docker images for all services..."
+          
+          # Build Docker images
+          docker build -t auth-service ./auth
+          docker build -t product-service ./product
+          docker build -t order-service ./order
+          docker build -t api-gateway ./api-gateway
+          
+          echo "✅ All Docker images built successfully!"
+          
+      - name: Verify Docker Images
+        run: |
+          echo "📋 Listing all Docker images:"
+          docker images
+          echo "✅ Docker images ready for deployment"
