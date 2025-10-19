@@ -121,4 +121,4 @@ Desktop.ini
 echo "mongo-data/" >> .gitignore
 echo "*.log" >> .gitignore
 echo "data/" >> .gitignore
-echo "node_modules/" >> .gitignore
+echo "node_modules/" >> .gitignoremongo-data/
