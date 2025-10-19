@@ -17,44 +17,73 @@ jobs:
           
       - name: Verify Services Installation
         run: |
-          echo "🔧 Verifying services can be installed and built..."
+          echo "🔧 Verifying services can be installed..."
+          cd auth && npm install && echo "✅ Auth: OK"
+          cd ../product && npm install && echo "✅ Product: OK"
+          cd ../order && npm install && echo "✅ Order: OK"
+          cd ../api-gateway && npm install && echo "✅ API Gateway: OK"
+
+      - name: Create Dockerfiles
+        run: |
+          echo "📝 Creating Dockerfiles for all services..."
           
-          # Verify Auth Service
-          cd auth
-          npm install
-          echo "✅ Auth service - Installation successful"
+          # Tạo Dockerfile cho auth
+          cat > auth/Dockerfile << EOF
+          FROM node:18
+          WORKDIR /app
+          COPY package*.json ./
+          RUN npm install
+          COPY . .
+          EXPOSE 3000
+          CMD ["npm", "start"]
+          EOF
           
-          # Verify Product Service  
-          cd ../product
-          npm install
-          echo "✅ Product service - Installation successful"
+          # Tạo Dockerfile cho product
+          cat > product/Dockerfile << EOF
+          FROM node:18
+          WORKDIR /app
+          COPY package*.json ./
+          RUN npm install
+          COPY . .
+          EXPOSE 3001
+          CMD ["npm", "start"]
+          EOF
           
-          # Verify Order Service
-          cd ../order
-          npm install
-          echo "✅ Order service - Installation successful"
+          # Tạo Dockerfile cho order
+          cat > order/Dockerfile << EOF
+          FROM node:18
+          WORKDIR /app
+          COPY package*.json ./
+          RUN npm install
+          COPY . .
+          EXPOSE 3002
+          CMD ["npm", "start"]
+          EOF
           
-          # Verify API Gateway
-          cd ../api-gateway
-          npm install
-          echo "✅ API Gateway - Installation successful"
+          # Tạo Dockerfile cho api-gateway
+          cat > api-gateway/Dockerfile << EOF
+          FROM node:18
+          WORKDIR /app
+          COPY package*.json ./
+          RUN npm install
+          COPY . .
+          EXPOSE 3003
+          CMD ["npm", "start"]
+          EOF
           
-          echo "🎉 All services verified successfully!"
+          echo "✅ Dockerfiles created successfully!"
 
       - name: Build Docker Images
         run: |
           echo "🐳 Building Docker images for all services..."
-          
-          # Build Docker images
           docker build -t auth-service ./auth
           docker build -t product-service ./product
           docker build -t order-service ./order
           docker build -t api-gateway ./api-gateway
-          
           echo "✅ All Docker images built successfully!"
           
       - name: Verify Docker Images
         run: |
-          echo "📋 Listing all Docker images:"
-          docker images
-          echo "✅ Docker images ready for deployment"
+          echo "📋 Docker images built:"
+          docker images | grep -E "(auth-service|product-service|order-service|api-gateway)"
+          echo "🎉 CI/CD with Docker completed successfully!"
