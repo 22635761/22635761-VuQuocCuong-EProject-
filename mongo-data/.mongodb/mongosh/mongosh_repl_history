@@ -1,0 +1,3 @@
+show collections
+use auth_db
+show dbs
