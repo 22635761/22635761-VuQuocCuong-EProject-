@@ -9,7 +9,7 @@ services:
     ports:
       - "27018:27017"             # publish ra ngoài để Compass truy cập
     volumes:
-      - ./mongo-data:/data/db     # dữ liệu được lưu vĩnh viễn ở host
+      - mongo_data:/data/db    
     networks:
       - micro-net
 
