@@ -4,7 +4,7 @@ Hệ thống microservices hoàn chỉnh cho ứng dụng thương mại điện
 
 🌟 Kiến Trúc Hệ Thống
 
-text
+
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │   API Gateway   │    │   Auth Service   │    │ Product Service │
 │    (Port 3003)  │    │    (Port 3000)   │    │   (Port 3001)   │
