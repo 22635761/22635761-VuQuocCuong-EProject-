@@ -2,29 +2,7 @@
 
 Hệ thống microservices hoàn chỉnh cho ứng dụng thương mại điện tử với xác thực, quản lý sản phẩm và xử lý đơn hàng sử dụng RabbitMQ cho giao tiếp bất đồng bộ.
 
-🌟 Kiến Trúc Hệ Thống
 
-
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   API Gateway   │    │   Auth Service   │    │ Product Service │
-│    (Port 3003)  │    │    (Port 3000)   │    │   (Port 3001)   │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
-                                 │
-                     ┌───────────┴───────────┐
-                     │                       │
-             ┌─────────────┐         ┌─────────────┐
-             │  MongoDB    │         │  RabbitMQ   │
-             │ (Port 27017)│         │ (Port 5672) │
-             └─────────────┘         └─────────────┘
-                       │                       │
-                       └───────────┬───────────┘
-                                 │
-                     ┌───────────┴───────────┐
-                     │   Order Service       │
-                     │    (Port 3002)        │
-                     └───────────────────────┘
 🏗️ Tổng Quan Các Dịch Vụ
 
 Dịch Vụ	Port	Mô Tả	Database
