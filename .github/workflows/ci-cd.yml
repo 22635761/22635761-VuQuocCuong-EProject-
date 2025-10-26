@@ -11,12 +11,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    # ⚙️ Thêm MongoDB service để test kết nối
+    # ⚙️ Thêm MongoDB service (dùng port 27018 để giống local)
     services:
       mongodb:
         image: mongo:6
         ports:
-          - 27017:27017
+          - 27018:27017
         options: >-
           --health-cmd="mongosh --eval 'db.adminCommand(\"ping\")'"
           --health-interval=10s
@@ -35,22 +35,22 @@ jobs:
       - name: Wait for MongoDB to start
         run: sleep 10
 
-      # Test Auth Service
+      # ✅ Test Auth Service
       - name: Run Auth tests
         working-directory: ./auth
         env:
-          MONGO_URI: mongodb://localhost:27017/auth_db
+          MONGO_URI: mongodb://localhost:27018/auth_db
         run: |
           npm ci
           npm uninstall chai
           npm install chai@4.5.0 chai-http@4
           npm test
 
-      # Test Product Service
+      # ✅ Test Product Service
       - name: Run Product tests
         working-directory: ./product
         env:
-          MONGO_URI: mongodb://localhost:27017/product_db
+          MONGO_URI: mongodb://localhost:27018/product_db
         run: |
           npm ci
           npm uninstall chai
