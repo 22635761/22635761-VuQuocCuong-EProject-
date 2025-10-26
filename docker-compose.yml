@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  # 🧩 MongoDB
+  mongodb:
+    image: mongo:7.0
+    container_name: mongodb
+    restart: always
+    ports:
+      - "27018:27017"             # publish ra ngoài để Compass truy cập
+    volumes:
+      - mongo_data:/data/db    
+    networks:
+      - micro-net
+
+  # 🧩 RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - micro-net
+
+  # 🧩 Auth Service
+  auth:
+    build: ./auth
+    container_name: auth
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./auth/.env
+    depends_on:
+      - mongodb
+    networks:
+      - micro-net
+
+  # 🧩 Product Service
+  product:
+    build: ./product
+    container_name: product
+    restart: always
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./product/.env
+    depends_on:
+      - mongodb
+      - rabbitmq
+    networks:
+      - micro-net
+
+  # 🧩 Order Service
+  order:
+    build: ./order
+    container_name: order
+    restart: always
+    ports:
+      - "3002:3002"
+    env_file:
+      - ./order/.env
+    depends_on:
+      - mongodb
+      - rabbitmq
+    networks:
+      - micro-net
+
+  # 🧩 API Gateway
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    restart: always
+    ports:
+      - "3003:3003"
+    depends_on:
+      - auth
+      - product
+      - order
+    networks:
+      - micro-net
+
+# 🔒 Volume lưu dữ liệu MongoDB thật sự
+volumes:
+  mongo_data:
+
+# 🌐 Network dùng chung giữa các container
+networks:
+  micro-net:
+    driver: bridge

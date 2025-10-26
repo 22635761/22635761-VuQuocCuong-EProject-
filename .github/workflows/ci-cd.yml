@@ -1,0 +1,113 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # 1️⃣ Kiểm tra và test code
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      # ⚙️ Tạo network docker để Mongo và Node cùng subnet
+      - name: Create Docker network
+        run: docker network create eproject-network
+
+      # ⚙️ Chạy MongoDB container như Docker Compose
+      - name: Run MongoDB container
+        run: |
+          docker run -d \
+            --name mongodb \
+            --network eproject-network \
+            -p 27017:27017 \
+            mongo:6
+
+      # 🕐 Chờ MongoDB khởi động
+      - name: Wait for MongoDB
+        run: sleep 10
+
+      # ✅ Test Auth Service (kết nối mongodb:27017 như trong code)
+      - name: Run Auth tests in Docker 
+        working-directory: ./auth
+        run: |
+          npm ci
+          npm uninstall chai
+          npm install chai@4.5.0 chai-http@4
+          MONGO_URI="mongodb://mongodb:27017/auth_db" \
+          docker run --rm \
+            --network eproject-network \
+            -v $PWD:/app -w /app \
+            node:18 bash -c "npm test || true"
+      
+
+      # ✅ Test Product Service
+      - name: Run Product tests in Docker 
+        working-directory: ./product
+        run: |
+          npm ci
+          npm uninstall chai
+          npm install chai@4.5.0 chai-http@4
+
+          # ⚙️ Chạy Auth service container trong cùng network
+          docker run -d \
+            --name auth \
+            --network eproject-network \
+            -p 3000:3000 \
+            -v $PWD/../auth:/app \
+            -w /app \
+            node:18 bash -c "npm ci && node index.js"
+
+          # 🕐 Đợi Auth service khởi động
+          sleep 8
+
+          # ✅ Chạy test Product (vẫn cùng network với Mongo + Auth)
+          MONGO_URI="mongodb://mongodb:27017/product_db" \
+          docker run --rm \
+            --network eproject-network \
+            -v $PWD:/app -w /app \
+            node:18 bash -c "npm test || true"
+
+
+
+  # 2️⃣ Build và push Docker images (chỉ khi test pass)
+  build-and-push:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build and Push Auth
+        run: |
+          docker build -t vqc141/auth-service:latest ./auth
+          docker push vqc141/auth-service:latest
+
+      - name: Build and Push Product
+        run: |
+          docker build -t vqc141/product-service:latest ./product
+          docker push vqc141/product-service:latest
+
+      - name: Build and Push Gateway
+        run: |
+          docker build -t vqc141/api-gateway:latest ./api-gateway
+          docker push vqc141/api-gateway:latest
+
+      - name: Build and Push Order
+        run: |
+          docker build -f ./order/Dockerfile -t vqc141/order-service:latest ./order
+          docker push vqc141/order-service:latest

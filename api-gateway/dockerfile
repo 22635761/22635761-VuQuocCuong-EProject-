@@ -1,0 +1,17 @@
+FROM node:18-alpine
+WORKDIR /app
+
+# Install curl for health checks
+RUN apk add --no-cache curl
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3003/health || exit 1
+
+EXPOSE 3003
+CMD ["node", "index.js"]

@@ -1,0 +1,128 @@
+# ============================================
+# 🧱 Common Node.js
+# ============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+
+# ============================================
+# ⚙️ Environment variables
+# ============================================
+.env
+.env.local
+.env.*.local
+
+# ============================================
+# 🐳 Docker
+# ============================================
+*.pid
+*.seed
+*.log
+docker-compose.override.yml
+docker-compose.dev.yml
+**/docker-compose.override.yml
+**/docker-compose.dev.yml
+
+# Ignore Docker build cache
+**/tmp/
+**/cache/
+**/.dockerignore
+
+
+# ============================================
+# 🗂️ System files
+# ============================================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# ============================================
+# 🧩 Logs & debug files
+# ============================================
+logs/
+*.log
+npm-debug.log*
+debug.log*
+**/logs/
+**/debug.log
+**/*.log
+
+# ============================================
+# 🧰 Coverage & test
+# ============================================
+coverage/
+.nyc_output/
+# *.test.js
+# *.spec.js
+jest.config.js
+**/test-results/
+# **/src/test/
+
+# ============================================
+# 🧱 Build outputs
+# ============================================
+dist/
+build/
+tmp/
+.cache/
+*.out
+**/dist/
+**/build/
+**/.next/
+**/public/uploads/
+
+# ============================================
+# 🧩 IDE Config
+# ============================================
+.vscode/
+.idea/
+*.iml
+
+# ============================================
+# 🧪 Local development data
+# ============================================
+mongo_data/
+*.db
+*.sqlite
+*.sqlite3
+data/
+**/data/
+**/db/
+uploads/
+uploads/*
+uploads/**/*.*
+!uploads/.gitkeep
+
+# ============================================
+# ⚙️ OS-specific
+# ============================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# Mở .gitignore và thêm các dòng sau
+echo "mongo-data/" >> .gitignore
+echo "*.log" >> .gitignore
+echo "data/" >> .gitignore
+echo "node_modules/" >> .gitignoremongo-data/
+
+# MongoDB data
+mongo-data/
+mongo-data/
