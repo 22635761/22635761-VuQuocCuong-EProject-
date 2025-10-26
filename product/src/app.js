@@ -39,6 +39,20 @@ class App {
   setupMessageBroker() {
     MessageBroker.connect();
   }
+// Trong file product/src/app.js, thêm middleware debug
+  setMiddlewares() {
+    this.app.use(express.json());
+    this.app.use(express.urlencoded({ extended: false }));
+    
+    // DEBUG MIDDLEWARE - THÊM VÀO ĐÂY
+    this.app.use((req, res, next) => {
+      console.log(`[PRODUCT APP] ${req.method} ${req.originalUrl}`);
+      console.log(`[PRODUCT APP] req.url: ${req.url}`);
+      console.log(`[PRODUCT APP] req.baseUrl: ${req.baseUrl}`);
+      console.log(`[PRODUCT APP] req.path: ${req.path}`);
+      next();
+    });
+  }
 
   start() {
     this.server = this.app.listen(3001, () =>

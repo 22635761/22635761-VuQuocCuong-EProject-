@@ -5,11 +5,10 @@ const isAuthenticated = require("../utils/isAuthenticated");
 const router = express.Router();
 const productController = new ProductController();
 
+// CRUD
+router.get("/", isAuthenticated, productController.getProducts);
+router.get("/:id", isAuthenticated, productController.getProductById);
 router.post("/", isAuthenticated, productController.createProduct);
 router.post("/buy", isAuthenticated, productController.createOrder);
-router.get("/", isAuthenticated, productController.getProducts);
-
-
-router.get("/:id", isAuthenticated, productController.getProductById);
 
 module.exports = router;

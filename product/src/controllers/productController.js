@@ -123,25 +123,17 @@ class ProductController {
     }
   }
   
-   // THÊM METHOD MỚI:
-  async getProductById(req, res, next) {
-    try {
-      const { id } = req.params;
-      console.log("🔍 Getting product by ID:", id);
-      
-      const product = await Product.findById(id);
-      
-      if (!product) {
-        return res.status(404).json({ message: "Product not found" });
-      }
-      
-      console.log("✅ Product found:", product.name);
-      res.status(200).json(product);
-    } catch (error) {
-      console.error("❌ Error getting product:", error);
-      res.status(500).json({ message: "Server error: " + error.message });
-    }
+async getProductById(req, res) {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: "Not found" });
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
+}
+
+
 
 
   async getOrderStatus(req, res, next) {
