@@ -13,7 +13,6 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x, 20.x]
-        # Chỉ dùng LTS versions để ổn định
 
     services:
       mongodb:
@@ -46,9 +45,16 @@ jobs:
         cd product
         npm ci
     
+    - name: Verify test files exist
+      run: |
+        echo "📁 Checking test files..."
+        find . -name "*.test.js" -type f
+        echo "✅ Test files verified"
+    
     - name: Run tests for auth service
       run: |
         cd auth
+        echo "🚀 Running actual tests from authController.test.js..."
         npx mocha --timeout 20000 "src/test/authController.test.js" --exit
       env:
         MONGODB_URI: mongodb://localhost:27017/test_db
