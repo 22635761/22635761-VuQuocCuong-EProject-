@@ -60,11 +60,11 @@ debug.log*
 # ============================================
 coverage/
 .nyc_output/
-*.test.js
-*.spec.js
+# *.test.js
+# *.spec.js
 jest.config.js
 **/test-results/
-**/src/test/
+# **/src/test/
 
 # ============================================
 # 🧱 Build outputs
