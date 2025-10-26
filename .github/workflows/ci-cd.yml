@@ -52,7 +52,7 @@ jobs:
       
 
       # ✅ Test Product Service
-      - name: Run Product tests in Docker network
+      - name: Run Product tests in Docker 
         working-directory: ./product
         run: |
           npm ci
@@ -80,23 +80,6 @@ jobs:
 
 
 
-
-
-
-
-
-      # ✅ Test Product Service (nếu cần)
-      - name: Run Product tests in Docker 
-        working-directory: ./product
-        run: |
-          npm ci
-          npm uninstall chai
-          npm install chai@4.5.0 chai-http@4
-          MONGO_URI="mongodb://mongodb:27017/product_db" \
-          docker run --rm \
-            --network eproject-network \
-            -v $PWD:/app -w /app \
-            node:18 bash -c "npm test"
 
   # 2️⃣ Build và push Docker images (chỉ khi test pass)
   build-and-push:
