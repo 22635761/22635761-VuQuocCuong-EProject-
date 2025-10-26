@@ -106,3 +106,8 @@ jobs:
         run: |
           docker build -t vqc141/api-gateway:latest ./api-gateway
           docker push vqc141/api-gateway:latest
+
+      - name: Build and Push Order
+        run: |
+          docker build -f ./order/Dockerfile -t vqc141/order-service:latest ./order
+          docker push vqc141/order-service:latest
