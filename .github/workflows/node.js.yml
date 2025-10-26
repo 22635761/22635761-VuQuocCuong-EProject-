@@ -30,39 +30,24 @@ jobs:
         cache: 'npm'
         cache-dependency-path: 'auth/package-lock.json'
     
-    - name: Install ALL dependencies for auth service
+    - name: Clean install with specific versions
       working-directory: ./auth
       run: |
-        # Cài đặt cả dependencies và devDependencies
-        npm ci --include=dev
-        # Hoặc nếu muốn chắc chắn
-        npm install chai chai-http mocha --save-dev
-    
-    - name: Verify dependencies installed
-      working-directory: ./auth
-      run: |
-        echo "📦 Checking installed packages:"
-        npm list chai chai-http mocha || echo "Some packages missing but continuing..."
+        # Xóa hoàn toàn node_modules và package-lock
+        rm -rf node_modules package-lock.json
+        
+        # Cài đặt phiên bản cụ thể tương thích CommonJS
+        npm init -y
+        npm install --save-dev chai@4.3.10 chai-http@4.4.0 mocha@10.2.0
+        npm install
+        
+        # Kiểm tra phiên bản
+        echo "✅ Installed versions:"
+        npm list chai chai-http mocha
     
     - name: Run tests for auth service
       working-directory: ./auth
-      run: |
-        echo "🚀 Running tests with installed dependencies..."
-        npx mocha --timeout 20000 "src/test/authController.test.js" --exit
+      run: npx mocha --timeout 20000 "src/test/authController.test.js" --exit
       env:
         MONGODB_URI: mongodb://localhost:27017/test_db
         JWT_SECRET: test-secret-key
-        
-    - name: Build projects
-      run: |
-        cd auth && npm run build --if-present
-
-    - name: Install compatible test dependencies
-      working-directory: ./auth
-      run: |
-        # Gỡ bỏ phiên bản hiện tại
-        npm uninstall chai chai-http mocha
-        # Cài phiên bản tương thích CommonJS
-        npm install --save-dev chai@4.3.10 chai-http@4.4.0 mocha@10.0.0
-        # Verify
-        npm list chai chai-http mocha
