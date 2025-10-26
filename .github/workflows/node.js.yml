@@ -56,3 +56,13 @@ jobs:
     - name: Build projects
       run: |
         cd auth && npm run build --if-present
+
+    - name: Install compatible test dependencies
+      working-directory: ./auth
+      run: |
+        # Gỡ bỏ phiên bản hiện tại
+        npm uninstall chai chai-http mocha
+        # Cài phiên bản tương thích CommonJS
+        npm install --save-dev chai@4.3.10 chai-http@4.4.0 mocha@10.0.0
+        # Verify
+        npm list chai chai-http mocha
