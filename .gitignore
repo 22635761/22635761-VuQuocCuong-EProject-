@@ -30,7 +30,7 @@ docker-compose.dev.yml
 **/tmp/
 **/cache/
 **/.dockerignore
-**/Dockerfile*
+
 
 # ============================================
 # 🗂️ System files
