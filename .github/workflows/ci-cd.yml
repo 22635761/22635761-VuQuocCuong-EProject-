@@ -38,7 +38,7 @@ jobs:
         run: sleep 10
 
       # ✅ Test Auth Service (kết nối mongodb:27017 như trong code)
-      - name: Run Auth tests in Docker network
+      - name: Run Auth tests in Docker 
         working-directory: ./auth
         run: |
           npm ci
@@ -52,7 +52,7 @@ jobs:
 
 
       # ✅ Test Product Service (nếu cần)
-      - name: Run Product tests in Docker network
+      - name: Run Product tests in Docker 
         working-directory: ./product
         run: |
           npm ci
