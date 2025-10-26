@@ -11,18 +11,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    # ⚙️ Thêm MongoDB service (dùng port 27018 để giống local)
-    services:
-      mongodb:
-        image: mongo:6
-        ports:
-          - 27018:27017
-        options: >-
-          --health-cmd="mongosh --eval 'db.adminCommand(\"ping\")'"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -32,30 +20,48 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Wait for MongoDB to start
+      # ⚙️ Tạo network docker để Mongo và Node cùng subnet
+      - name: Create Docker network
+        run: docker network create eproject-network
+
+      # ⚙️ Chạy MongoDB container như Docker Compose
+      - name: Run MongoDB container
+        run: |
+          docker run -d \
+            --name mongodb \
+            --network eproject-network \
+            -p 27017:27017 \
+            mongo:6
+
+      # 🕐 Chờ MongoDB khởi động
+      - name: Wait for MongoDB
         run: sleep 10
 
-      # ✅ Test Auth Service
-      - name: Run Auth tests
+      # ✅ Test Auth Service (kết nối mongodb:27017 như trong code)
+      - name: Run Auth tests in Docker network
         working-directory: ./auth
-        env:
-          MONGO_URI: mongodb://localhost:27018/auth_db
         run: |
           npm ci
           npm uninstall chai
           npm install chai@4.5.0 chai-http@4
-          npm test
+          MONGO_URI="mongodb://mongodb:27017/auth_db" \
+          docker run --rm \
+            --network eproject-network \
+            -v $PWD:/app -w /app \
+            node:18 bash -c "npm test"
 
-      # ✅ Test Product Service
-      - name: Run Product tests
+      # ✅ Test Product Service (nếu cần)
+      - name: Run Product tests in Docker network
         working-directory: ./product
-        env:
-          MONGO_URI: mongodb://localhost:27018/product_db
         run: |
           npm ci
           npm uninstall chai
           npm install chai@4.5.0 chai-http@4
-          npm test
+          MONGO_URI="mongodb://mongodb:27017/product_db" \
+          docker run --rm \
+            --network eproject-network \
+            -v $PWD:/app -w /app \
+            node:18 bash -c "npm test"
 
   # 2️⃣ Build và push Docker images (chỉ khi test pass)
   build-and-push:
@@ -71,19 +77,16 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Build & Push Auth
       - name: Build and Push Auth
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/auth-service:latest ./auth
           docker push ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
 
-      # Build & Push Product
       - name: Build and Push Product
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/product-service:latest ./product
           docker push ${{ secrets.DOCKER_USERNAME }}/product-service:latest
 
-      # Build & Push API Gateway
       - name: Build and Push Gateway
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/api-gateway:latest ./api-gateway
