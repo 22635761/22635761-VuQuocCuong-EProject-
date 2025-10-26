@@ -1,89 +1,90 @@
-name: CI/CD Pipeline with Docker
+name: CI/CD Pipeline
 
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  verify-and-build:
+  # 1️⃣ Kiểm tra và test code
+  test:
     runs-on: ubuntu-latest
+
+    # ⚙️ Thêm MongoDB service để test kết nối
+    services:
+      mongodb:
+        image: mongo:6
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd="mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
-      - uses: actions/checkout@v2
-      
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
       - name: Setup Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: '18'
-          
-      - name: Verify Services Installation
-        run: |
-          echo "🔧 Verifying services can be installed..."
-          cd auth && npm install && echo "✅ Auth: OK"
-          cd ../product && npm install && echo "✅ Product: OK"
-          cd ../order && npm install && echo "✅ Order: OK"
-          cd ../api-gateway && npm install && echo "✅ API Gateway: OK"
 
-      - name: Create Dockerfiles
-        run: |
-          echo "📝 Creating Dockerfiles for all services..."
-          
-          # Tạo Dockerfile cho auth
-          cat > auth/Dockerfile << EOF
-          FROM node:18
-          WORKDIR /app
-          COPY package*.json ./
-          RUN npm install
-          COPY . .
-          EXPOSE 3000
-          CMD ["npm", "start"]
-          EOF
-          
-          # Tạo Dockerfile cho product
-          cat > product/Dockerfile << EOF
-          FROM node:18
-          WORKDIR /app
-          COPY package*.json ./
-          RUN npm install
-          COPY . .
-          EXPOSE 3001
-          CMD ["npm", "start"]
-          EOF
-          
-          # Tạo Dockerfile cho order
-          cat > order/Dockerfile << EOF
-          FROM node:18
-          WORKDIR /app
-          COPY package*.json ./
-          RUN npm install
-          COPY . .
-          EXPOSE 3002
-          CMD ["npm", "start"]
-          EOF
-          
-          # Tạo Dockerfile cho api-gateway
-          cat > api-gateway/Dockerfile << EOF
-          FROM node:18
-          WORKDIR /app
-          COPY package*.json ./
-          RUN npm install
-          COPY . .
-          EXPOSE 3003
-          CMD ["npm", "start"]
-          EOF
-          
-          echo "✅ Dockerfiles created successfully!"
+      - name: Wait for MongoDB to start
+        run: sleep 10
 
-      - name: Build Docker Images
+      # Test Auth Service
+      - name: Run Auth tests
+        working-directory: ./auth
+        env:
+          MONGO_URI: mongodb://localhost:27017/auth_db
         run: |
-          echo "🐳 Building Docker images for all services..."
-          docker build -t auth-service ./auth
-          docker build -t product-service ./product
-          docker build -t order-service ./order
-          docker build -t api-gateway ./api-gateway
-          echo "✅ All Docker images built successfully!"
-          
-      - name: Verify Docker Images
+          npm ci
+          npm uninstall chai
+          npm install chai@4.5.0 chai-http@4
+          npm test
+
+      # Test Product Service
+      - name: Run Product tests
+        working-directory: ./product
+        env:
+          MONGO_URI: mongodb://localhost:27017/product_db
         run: |
-          echo "📋 Docker images built:"
-          docker images | grep -E "(auth-service|product-service|order-service|api-gateway)"
-          echo "🎉 CI/CD with Docker completed successfully!"
+          npm ci
+          npm uninstall chai
+          npm install chai@4.5.0 chai-http@4
+          npm test
+
+  # 2️⃣ Build và push Docker images (chỉ khi test pass)
+  build-and-push:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Build & Push Auth
+      - name: Build and Push Auth
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/auth-service:latest ./auth
+          docker push ${{ secrets.DOCKER_USERNAME }}/auth-service:latest
+
+      # Build & Push Product
+      - name: Build and Push Product
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/product-service:latest ./product
+          docker push ${{ secrets.DOCKER_USERNAME }}/product-service:latest
+
+      # Build & Push API Gateway
+      - name: Build and Push Gateway
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/api-gateway:latest ./api-gateway
+          docker push ${{ secrets.DOCKER_USERNAME }}/api-gateway:latest
