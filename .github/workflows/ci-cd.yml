@@ -49,6 +49,40 @@ jobs:
             --network eproject-network \
             -v $PWD:/app -w /app \
             node:18 bash -c "npm test || true"
+      
+
+      # ✅ Test Product Service
+      - name: Run Product tests in Docker network
+        working-directory: ./product
+        run: |
+          npm ci
+          npm uninstall chai
+          npm install chai@4.5.0 chai-http@4
+
+          # ⚙️ Chạy Auth service container trong cùng network
+          docker run -d \
+            --name auth \
+            --network eproject-network \
+            -p 3000:3000 \
+            -v $PWD/../auth:/app \
+            -w /app \
+            node:18 bash -c "npm ci && node index.js"
+
+          # 🕐 Đợi Auth service khởi động
+          sleep 8
+
+          # ✅ Chạy test Product (vẫn cùng network với Mongo + Auth)
+          MONGO_URI="mongodb://mongodb:27017/product_db" \
+          docker run --rm \
+            --network eproject-network \
+            -v $PWD:/app -w /app \
+            node:18 bash -c "npm test || true"
+
+
+
+
+
+
 
 
       # ✅ Test Product Service (nếu cần)
