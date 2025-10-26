@@ -49,7 +49,7 @@ jobs:
     - name: Run tests for auth service
       run: |
         cd auth
-        npm test
+        npx mocha --timeout 20000 --recursive src/test --exit
       env:
         MONGODB_URI: mongodb://localhost:27017/test_db
         JWT_SECRET: test-secret-key
