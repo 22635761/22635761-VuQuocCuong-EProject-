@@ -30,24 +30,16 @@ jobs:
         cache: 'npm'
         cache-dependency-path: 'auth/package-lock.json'
     
-    - name: Clean install with specific versions
+    - name: Install dependencies
       working-directory: ./auth
       run: |
-        # Xóa hoàn toàn node_modules và package-lock
-        rm -rf node_modules package-lock.json
-        
-        # Cài đặt phiên bản cụ thể tương thích CommonJS
-        npm init -y
-        npm install --save-dev chai@4.3.10 chai-http@4.4.0 mocha@10.2.0
-        npm install
-        
-        # Kiểm tra phiên bản
-        echo "✅ Installed versions:"
-        npm list chai chai-http mocha
+        npm ci --include=dev
     
-    - name: Run tests for auth service
+    - name: Run tests with correct MongoDB connection
       working-directory: ./auth
       run: npx mocha --timeout 20000 "src/test/authController.test.js" --exit
       env:
-        MONGODB_URI: mongodb://localhost:27017/test_db
+        # Sửa thành localhost thay vì mongodb
+        MONGODB_URI: mongodb://localhost:27018/test_db
         JWT_SECRET: test-secret-key
+        PORT: 3000
